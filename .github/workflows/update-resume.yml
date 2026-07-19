@@ -1,0 +1,44 @@
+name: Weekly resume sync
+
+on:
+  schedule:
+    - cron: "30 6 * * 1" # every Monday, 06:30 UTC (~12:00 IST)
+  workflow_dispatch: {} # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pypdf gdown
+
+      - name: Download resume folder from Google Drive
+        run: gdown --folder "${{ vars.DRIVE_FOLDER_URL }}" -O drive_download
+
+      - name: Parse newest PDF into site data
+        run: |
+          RESUME=$(ls -t drive_download/*.pdf | head -1)
+          echo "Using: $RESUME"
+          cp "$RESUME" assets/resume.pdf
+          python scripts/parse_resume.py assets/resume.pdf data.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "resume-sync-bot"
+          git config user.email "actions@github.com"
+          git add data.js assets/resume.pdf
+          if git diff --cached --quiet; then
+            echo "No resume changes this week."
+          else
+            git commit -m "chore: weekly resume sync"
+            git push
+          fi
