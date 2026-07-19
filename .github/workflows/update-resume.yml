@@ -21,8 +21,17 @@ jobs:
       - name: Install dependencies
         run: pip install pypdf gdown
 
-      - name: Download resume folder from Google Drive
-        run: gdown --folder "${{ vars.DRIVE_FOLDER_URL }}" -O drive_download
+      - name: Download resume from Google Drive
+        run: |
+          URL="${{ vars.DRIVE_FOLDER_URL }}"
+          mkdir -p drive_download
+          if echo "$URL" | grep -q "/file/d/"; then
+            # a single shared file link
+            gdown --fuzzy "$URL" -O drive_download/resume.pdf
+          else
+            # a shared folder link: grab everything, newest PDF wins
+            gdown --folder "$URL" -O drive_download
+          fi
 
       - name: Parse newest PDF into site data
         run: |
