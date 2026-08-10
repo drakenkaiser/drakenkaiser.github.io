@@ -127,5 +127,5 @@ window.RESUME_DATA = {
       "description": "Created a decorator-based Python package for concurrency and async task orchestration with 20,000+ PyPI downloads, used across data pipeline workflows."
     }
   ],
-  "updated": "2026-08-03"
+  "updated": "2026-08-10"
 };
